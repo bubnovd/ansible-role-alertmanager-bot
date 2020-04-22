@@ -9,11 +9,12 @@
 - name: Naive assertion for alertmanager_bot_telegram_token
   assert:
     that:
-      - alertmanager_bot_telegram_token != "example"
+      - item['value']['telegram_token'] != "example"
     fail_msg: "alertmanager_bot_telegram_token is required"
+  loop: "{{ alertmanager_bots | dict2items }}"
 
 - name: Naive assertion for alertmanager_bot_telegram_admins
   assert:
     that:
-      - alertmanager_bot_telegram_admins|length > 0
-    fail_msg: "alertmanager_bot_telegram_admins must not be empty"
+      - alertmanager_bots|length > 0
+    fail_msg: "alertmanager_bots must not be empty"

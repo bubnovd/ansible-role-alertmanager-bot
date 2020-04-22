@@ -3,9 +3,17 @@
 - include: preflight.yml
 
 - include: install.yml
+  become: true
+
+- name: cleanup
+  file:
+    path: "{{ alertmanager_bot_download_path }}"
+    state: absent
 
 - name: ensure alertmanager_bot service is started and enabled
+  become: true
   systemd:
-    name: alertmanager_bot
+    name: "alertmanager_{{ item }}"
     state: started
     enabled: true
+  loop: "{{ alertmanager_bots | list }}"

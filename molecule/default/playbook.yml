@@ -1,0 +1,7 @@
+---
+- name: Run role
+  hosts: all
+  vars_files: testvars.yml
+  any_errors_fatal: true
+  roles:
+    - ansible-alertmanager-bot

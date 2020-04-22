@@ -10,34 +10,22 @@
   user:
     name: "{{ alertmanager_bot_user }}"
     system: true
-    shell: "{{ alertmanager_bot_shell }}"
+    shell: "/usr/sbin/nologin"
     group: "{{ alertmanager_bot_group }}"
-    home: "{{ alertmanager_bot_root_dir }}"
     createhome: false
 
 - name: create alertmanager_bot directories
   file:
-    path: "{{ alertmanager_bot_root_dir }}"
+    path: "{{ alertmanager_bot_root_dir }}_{{ item }}"
     state: directory
     owner: "{{ alertmanager_bot_user }}"
     group: "{{ alertmanager_bot_group }}"
     mode: 0750
+  loop: "{{ alertmanager_bots | list }}"
 
-- name: check if installed
-  stat:
-    path: "{{ alertmanager_bot_root_dir }}/releases/{{ alertmanager_bot_version }}/alertmanager_bot"
-  register: alertmanager_bot_bin
-
-- name: initialize the deploy root and gather facts
-  deploy_helper:
-    path: "{{ alertmanager_bot_root_dir }}"
-    release: "{{ alertmanager_bot_version }}"
-    shared_path: "{{ alertmanager_bot_shared_dir }}"
-    state: present
-
-- name: create release directory
+- name: create alertmanager_bot download directory
   file:
-    dest: "{{ deploy_helper.new_release_path }}"
+    path: "{{ alertmanager_bot_download_path }}"
     state: directory
     owner: "{{ alertmanager_bot_user }}"
     group: "{{ alertmanager_bot_group }}"
@@ -46,54 +34,44 @@
 - name: download release
   get_url:
     url: "{{ alertmanager_bot_download_url }}"
-    dest: "{{ deploy_helper.new_release_path }}/alertmanager_bot"
+    dest: "{{ alertmanager_bot_download_path }}/alertmanager_bot"
     remote_src: true
+    validate_certs: false
+  environment: "{{ proxy_env }}"
   register: _download_archive
   until: _download_archive is succeeded
   retries: 5
   delay: 2
-  when: not alertmanager_bot_bin.stat.exists or alertmanager_bot_force_install|bool
 
-- name: set permissions for executable file
-  file:
-    dest: "{{ deploy_helper.new_release_path }}/alertmanager_bot"
-    state: file
+- name: Propagate executable to its own directories
+  copy:
+    src: "{{ alertmanager_bot_download_path }}/alertmanager_bot"
+    dest: "{{ alertmanager_bot_root_dir }}_{{ item }}/alertmanager_{{ item }}"
     owner: "{{ alertmanager_bot_user }}"
     group: "{{ alertmanager_bot_group }}"
     mode: 0750
+    remote_src: true
+  loop: "{{ alertmanager_bots | list }}"
 
-- name: set permissions for shared directory
-  file:
-    dest: "{{ deploy_helper.shared_path }}"
-    state: directory
-    owner: "{{ alertmanager_bot_user }}"
-    group: "{{ alertmanager_bot_group }}"
-    mode: 0750
 
 - name: copy message template
   copy:
     src: "{{ alertmanager_bot_default_template_file }}"
-    dest: "{{ deploy_helper.shared_path }}/default.tmpl"
-    owner: root
-    group: root
+    dest: "{{ alertmanager_bot_root_dir }}_{{ item }}/default.tmpl"
+    owner: "{{ alertmanager_bot_user }}"
+    group: "{{ alertmanager_bot_group }}"
     mode: 0644
+  loop: "{{ alertmanager_bots | list }}"
   notify:
     - restart alertmanager bot
 
 - name: create systemd service unit
   template:
     src: alertmanager_bot.service.j2
-    dest: /etc/systemd/system/alertmanager_bot.service
+    dest: "/etc/systemd/system/alertmanager_{{ item['key'] }}.service"
     owner: root
     group: root
     mode: 0644
-  notify:
-    - restart alertmanager bot
-
-- name: finalize the deploy, removing the unfinished file and switching the symlink
-  deploy_helper:
-    path: "{{ alertmanager_bot_root_dir }}"
-    release: "{{ deploy_helper.new_release }}"
-    state: finalize
+  loop: "{{ alertmanager_bots | dict2items }}"
   notify:
     - restart alertmanager bot

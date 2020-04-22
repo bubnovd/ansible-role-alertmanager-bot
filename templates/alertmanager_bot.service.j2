@@ -1,26 +1,22 @@
 [Unit]
 Description=Alertmanager Bot
 Documentation=https://github.com/metalmatze/alertmanager-bot
-Wants=network-online.target
-After=network-online.target
-AssertFileIsExecutable={{ alertmanager_bot_release_dir }}/alertmanager_bot
+After=network.target
 
 [Service]
 Type=simple
 User={{ alertmanager_bot_user }}
 Group={{ alertmanager_bot_group }}
 
-PrivateTmp=true
-ProtectHome=true
-PrivateDevices=true
-
 Environment=ALERTMANAGER_URL={{ alertmanager_bot_alertmanager_url }}
-Environment=LISTEN_ADDR={{ alertmanager_bot_listen_address }}
-Environment=TELEGRAM_TOKEN={{ alertmanager_bot_telegram_token }}
+Environment=LISTEN_ADDR={{ alertmanager_bot_listen_address }}:{{ item['value']['port'] }}
+Environment=TELEGRAM_TOKEN={{ item['value']['telegram_token'] }}
 Environment=STORE={{ alertmanager_bot_store }}
-Environment=TEMPLATE_PATHS={{ alertmanager_bot_shared_dir }}/default.tmpl
+Environment=TEMPLATE_PATHS={{ alertmanager_bot_root_dir }}_{{ item['key'] }}/default.tmpl
+Environment=HTTP_PROXY={{ proxy_env.http_proxy }}
+Environment=HTTPS_PROXY={{ proxy_env.https_proxy }}
 {% if alertmanager_bot_store == "bolt" %}
-Environment=BOLT_PATH={{ alertmanager_bot_bolt_path }}
+Environment=BOLT_PATH={{ alertmanager_bot_root_dir }}_{{ item['key'] }}/{{ alertmanager_bot_bolt_file }}
 {% endif %}
 {% if alertmanager_bot_store == "consul" %}
 Environment=CONSUL_URL={{ alertmanager_bot_consul_url }}
@@ -28,17 +24,17 @@ Environment=CONSUL_URL={{ alertmanager_bot_consul_url }}
 {% for item in alertmanager_bot_env_vars %}
 Environment={{ item.split("=")[0] }}={{ item.split("=")[1] }}
 {% endfor %}
-ExecStart={{ alertmanager_bot_release_dir }}/alertmanager_bot \
-{% for id in alertmanager_bot_telegram_admins %}
+ExecStart={{ alertmanager_bot_root_dir }}_{{ item['key'] }}/alertmanager_{{ item['key'] }} \
+{% for id in item['value']['telegram_admins'] %}
   --telegram.admin={{ id }} \
 {% endfor %}
   --log.level={{ alertmanager_bot_log_level }}
 
 KillMode=process
 
-SyslogIdentifier=alertmanager_bot
+SyslogIdentifier=alertmanager_{{ item['key'] }}
 Restart=always
-RestartSec=30
+RestartSec=60
 
 [Install]
 WantedBy=multi-user.target
