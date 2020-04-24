@@ -59,4 +59,5 @@ MIT / BSD
 Author Information
 ------------------
 
-This role was created in 2018 by [Maxim Baranov](https://github.com/mbaran0v).
+This role was created in 2020 by [Dmitry Bubnov](https://github.com/bubnovd).
+Forked by [Maxim Baranov](https://github.com/mbaran0v)
