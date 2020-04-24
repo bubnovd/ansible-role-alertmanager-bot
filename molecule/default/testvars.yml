@@ -1,7 +1,7 @@
 ---
 proxy_env:
-  http_proxy: "http://poxy.net:3112"
-  https_proxy: "http://proxy.net:3112"
+  http_proxy: "http://proxy.com:3112"
+  https_proxy: "http://proxy.com:3112"
 
 alertmanager_bot_version: 0.4.0
 
@@ -20,7 +20,7 @@ alertmanager_bot_shared_dir: "{{ alertmanager_bot_root_dir }}/shared"
 
 alertmanager_bot_listen_address: "127.0.0.1"
 alertmanager_bot_log_level: "info"
-alertmanager_bot_alertmanager_url: "http://localhost:9093"
+alertmanager_bot_alertmanager_url: "http://127.0.0.1:9093"
 alertmanager_bot_store: "bolt"
 alertmanager_bot_bolt_file: "am_bot.db"
 alertmanager_bot_consul_url: "http://127.0.0.1:8500"
@@ -33,9 +33,9 @@ alertmanager_bot_env_vars: []
 alertmanager_bots:
   bot_8080:
     port: 8080
-    telegram_token: "101253tetryrhdg4erh"
-    telegram_admins: [7955555]
+    telegram_token: "example"
+    telegram_admins: [798232323]
   bot_8081:
     port: 8081
-    telegram_token: "12097750rtgw3teytwg9YLtMmrHI"
-    telegram_admin: [7923444]
+    telegram_token: "exaqmple"
+    telegram_admin: [7253554245]

@@ -24,15 +24,15 @@ alertmanager_bot_version: 0.4.0
 version for installation
 
 ```yaml
-alertmanager_bot:
-    bot_8080:
-        port: 8080
-        telegram_token: example
-        telegram_admins:
-          - example
+alertmanager_bot_telegram_token: 123456
 ```
-port - listening port for bot
 telegram bot token - is required
+
+```yaml
+alertmanager_bot_telegram_admins:
+  - 1
+  - 2
+```
 list of telegram user id for admin accounts - is required
 
 Dependencies
@@ -59,5 +59,4 @@ MIT / BSD
 Author Information
 ------------------
 
-This role created  by [Dmitry Bubnov](https://github.com/bubnovd).
-Forked from [Maxim Baranov](https://github.com/mbaran0v).
+This role was created in 2018 by [Maxim Baranov](https://github.com/mbaran0v).
